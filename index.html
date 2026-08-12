@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Romano Palace — Ficha de Cliente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --navy:#0E1B33; --navy2:#16274A; --navy3:#1E3260;
+  --gold:#C6A15B; --gold-lt:#FBF3E1; --gold-bd:#E3C784; --gold-dk:#9C7A34;
+  --ivory:#F8F6F1; --card:#FFFFFF;
+  --text:#20242E; --muted:#8A8D97; --line:#E7E3D8;
+  --red:#B23A2E; --red-lt:#FBEAE8;
+  --green:#1E7A4C; --green-lt:#E9F5EE;
+  --amber:#8A6A16; --amber-lt:#FCF3DC;
+  --shadow:0 10px 30px rgba(14,27,51,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',Arial,sans-serif;background:var(--ivory);color:var(--text);}
+h1,h2,h3,.serif{font-family:'Playfair Display',Georgia,serif;}
+.wrap{max-width:960px;margin:0 auto;padding:18px;}
+.hidden{display:none !important;}
+
+/* ---------- Login ---------- */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 20% 20%,var(--navy3),var(--navy) 60%);padding:20px;}
+.login-card{background:var(--card);border-radius:18px;box-shadow:0 30px 70px rgba(0,0,0,.35);
+  padding:40px 36px;width:100%;max-width:380px;text-align:center;}
+.login-card .crest{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dk));
+  margin:0 auto 14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;font-weight:700;font-family:'Playfair Display',serif;}
+.login-card h1{font-size:22px;color:var(--navy);letter-spacing:.5px;}
+.login-card p.tag{color:var(--muted);font-size:12px;margin-top:4px;letter-spacing:1.5px;text-transform:uppercase;}
+.login-form{margin-top:26px;text-align:left;}
+.login-form label{font-size:11px;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;}
+.login-form input{width:100%;margin-top:6px;margin-bottom:16px;padding:11px 14px;border:1.5px solid var(--line);
+  border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#FBFAF7;}
+.login-form input:focus{border-color:var(--gold);background:#fff;}
+.btn-gold{width:100%;padding:12px;border:none;border-radius:9px;background:linear-gradient(135deg,var(--gold),var(--gold-dk));
+  color:#fff;font-weight:700;font-size:14px;letter-spacing:.4px;cursor:pointer;font-family:inherit;}
+.btn-gold:hover{filter:brightness(1.05);}
+#loginError{color:var(--red);font-size:12.5px;margin-top:10px;min-height:16px;}
+.demo-banner{margin-top:16px;background:var(--amber-lt);color:var(--amber);border-radius:8px;padding:8px 10px;font-size:11px;line-height:1.4;}
+
+/* ---------- App shell ---------- */
+#appScreen{min-height:100vh;}
+.topbar{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:16px 20px;}
+.topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand .crest{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dk));
+  display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:700;color:#fff;flex-shrink:0;}
+.brand h1{font-size:19px;letter-spacing:.5px;}
+.brand p{font-size:11px;color:#B9C4DD;margin-top:2px;}
+.top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:20px;
+  padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:6px;}
+.icon-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:9px;
+  padding:8px 10px;cursor:pointer;font-size:14px;}
+.icon-btn:hover{background:rgba(255,255,255,.18);}
+
+.update-bar{background:var(--gold-lt);border-bottom:1px solid var(--gold-bd);padding:10px 20px;}
+.update-bar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.update-bar-inner p{font-size:12px;color:var(--gold-dk);}
+.update-bar-inner .btns{display:flex;gap:8px;flex-wrap:wrap;}
+.btn-sm{padding:7px 14px;border-radius:8px;border:none;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-navy{background:var(--navy);color:#fff;}
+.btn-navy:hover{background:var(--navy2);}
+.btn-outline{background:#fff;color:var(--navy);border:1.5px solid var(--navy);}
+.btn-outline:hover{background:var(--navy);color:#fff;}
+#fileInputExcel{display:none;}
+
+/* ---------- Cards ---------- */
+.card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid var(--line);}
+.card-head{padding:12px 18px;font-size:11px;font-weight:700;color:var(--navy);letter-spacing:1px;text-transform:uppercase;
+  background:var(--ivory);border-bottom:1px solid var(--line);border-radius:14px 14px 0 0;}
+.card-body{padding:18px;}
+
+/* Search */
+.search-row{display:flex;gap:10px;flex-wrap:wrap;}
+.search-wrap{position:relative;flex:2;min-width:220px;}
+.select-wrap{flex:1;min-width:160px;}
+input[type=text],input[type=number],select{width:100%;padding:11px 14px;font-size:14px;border:1.5px solid var(--line);
+  border-radius:9px;background:#FBFAF7;outline:none;color:var(--text);font-family:inherit;}
+input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--gold);background:#fff;}
+.sugg-list{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1.5px solid var(--gold-bd);
+  border-radius:12px;max-height:340px;overflow-y:auto;z-index:50;box-shadow:0 20px 50px rgba(0,0,0,.18);display:none;}
+.sugg-item{padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid #F1EEE5;}
+.sugg-item:hover{background:var(--gold-lt);}
+.sugg-item b{color:var(--navy);}
+.sugg-item span{color:var(--muted);font-size:11.5px;}
+
+/* Ficha */
+.ficha-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.ficha-header h2{font-size:20px;color:var(--navy);}
+.ficha-header .depto-tag{background:var(--navy);color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;letter-spacing:.5px;}
+.status-chip{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;}
+.status-contrato{background:var(--green-lt);color:var(--green);}
+.status-otro{background:var(--amber-lt);color:var(--amber);}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;}
+.field{background:var(--ivory);border-radius:10px;padding:12px 14px;border:1px solid var(--line);}
+.field .lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+.field .val{font-size:15px;color:var(--navy);font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums;}
+.field.money .val{font-size:16px;letter-spacing:.2px;}
+.field.vencido .val{color:var(--red);}
+.field.vencido{background:var(--red-lt);border-color:#F0CFC9;}
+.section-title{font-size:11px;font-weight:700;color:var(--gold-dk);text-transform:uppercase;letter-spacing:1px;
+  margin:20px 0 10px;padding-top:14px;border-top:1px solid var(--line);}
+.section-title:first-of-type{margin-top:0;padding-top:0;border-top:none;}
+.note-box{background:var(--gold-lt);border:1px solid var(--gold-bd);border-radius:10px;padding:12px 14px;font-size:13px;color:#5A4620;margin-top:6px;}
+
+.editnote-row{display:flex;gap:8px;margin-top:8px;}
+.editnote-row textarea{flex:1;padding:10px 12px;border-radius:9px;border:1.5px solid var(--line);font-family:inherit;font-size:13px;resize:vertical;min-height:60px;}
+
+/* Descuento */
+.desc-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;}
+.desc-field{flex:1;min-width:140px;}
+.desc-field label{font-size:11px;color:var(--muted);font-weight:600;}
+.desc-result{margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+.desc-result .field .val{font-size:17px;}
+
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+.btn-pdf{background:var(--navy);color:#fff;border:none;border-radius:9px;padding:11px 20px;font-weight:700;
+  font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;}
+.btn-pdf:hover{background:var(--navy2);}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-state .big{font-size:40px;margin-bottom:10px;}
+
+/* ---------- Admin modal ---------- */
+.modal-bg{position:fixed;inset:0;background:rgba(14,27,51,.55);display:flex;align-items:flex-start;justify-content:center;
+  padding:40px 16px;z-index:200;overflow-y:auto;}
+.modal{background:#fff;border-radius:16px;max-width:760px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,.4);}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line);}
+.modal-head h2{font-size:18px;color:var(--navy);}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);}
+.modal-body{padding:22px;}
+.admin-box{background:var(--ivory);border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid var(--line);}
+.admin-box h3{font-size:14px;color:var(--navy);margin-bottom:4px;}
+.admin-sub{font-size:11.5px;color:var(--muted);margin-bottom:12px;}
+.admin-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;}
+.admin-form-grid label{font-size:11px;color:var(--navy);font-weight:600;}
+.perm-grid{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;}
+.perm-chip{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--navy);}
+.admin-save{margin-top:12px;background:var(--gold-dk);color:#fff;border:none;border-radius:8px;padding:10px 18px;
+  font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;}
+.admin-status{font-size:12px;margin-top:8px;min-height:16px;}
+.users-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.users-table th{text-align:left;padding:8px 10px;color:var(--muted);font-size:10.5px;text-transform:uppercase;border-bottom:1px solid var(--line);}
+.users-table td{padding:9px 10px;border-bottom:1px solid #F1EEE5;}
+.link-btn{background:none;border:none;color:var(--gold-dk);cursor:pointer;font-weight:700;font-size:12px;font-family:inherit;}
+.link-btn.danger{color:var(--red);}
+.admin-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.admin-new{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+.excel-modal-body{font-size:13px;color:var(--text);line-height:1.6;}
+.excel-modal-body ul{margin:10px 0 10px 20px;}
+.progress-box{background:var(--ivory);border-radius:10px;padding:12px;margin-top:12px;font-size:12.5px;color:var(--navy);}
+
+footer{text-align:center;font-size:11px;color:var(--muted);padding:30px 0;}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="crest">RP</div>
+    <h1>Romano Palace</h1>
+    <p class="tag">Portal de cobranza</p>
+    <div class="login-form">
+      <label>Usuario</label>
+      <input type="text" id="loginUsuario" placeholder="usuario" autocomplete="username">
+      <label>Contraseña</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="btn-gold" onclick="doLogin()">Entrar</button>
+      <div id="loginError"></div>
+    </div>
+    <div id="demoBanner" class="demo-banner hidden">
+      Modo demo: aún no conectas tu Google Sheet. Usa <b>admin / admin123</b> para entrar, o
+      configura <code>API_URL</code> en index.html (ver INSTRUCCIONES_DESPLIEGUE.md).
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="appScreen" class="hidden">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="crest">RP</div>
+        <div>
+          <h1>ROMANO PALACE — Propuesta de Pago</h1>
+          <p id="subHeading">Cobranza | Consulta y simulación de descuento</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="pill">👤 <span id="userName">—</span></div>
+        <button id="btnAdminGear" class="icon-btn hidden" onclick="openAdminUsuarios()" title="Administración de usuarios">⚙️</button>
+        <button class="icon-btn" onclick="logout()" title="Cerrar sesión">↪</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="update-bar">
+    <div class="update-bar-inner">
+      <p id="updateInfo">Conectando con Google Sheets...</p>
+      <div class="btns">
+        <button class="btn-sm btn-outline" onclick="cargarDatos()">↻ Actualizar</button>
+        <label id="btnCargarExcel" class="btn-sm btn-navy hidden" style="cursor:pointer;">
+          ⬆ Cargar Excel
+          <input type="file" id="fileInputExcel" accept=".xlsx,.xls" onchange="onExcelSelected(event)">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- Buscador -->
+    <div class="card">
+      <div class="card-head">Buscar cliente</div>
+      <div class="card-body">
+        <div class="search-row">
+          <div class="search-wrap">
+            <input type="text" id="searchInput" placeholder="Depto, torre/nivel o nombre de cliente..." oninput="onSearchInput()" autocomplete="off">
+            <div class="sugg-list" id="suggList"></div>
+          </div>
+          <div class="select-wrap">
+            <select id="nivelSelect" onchange="onNivelChange()">
+              <option value="">-- Torre / Nivel --</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ficha -->
+    <div id="fichaCard" class="card hidden">
+      <div class="card-head">Ficha de cliente</div>
+      <div class="card-body" id="fichaBody"></div>
+    </div>
+
+    <div id="emptyState" class="empty-state">
+      <div class="big">🏝️</div>
+      <p>Busca por depto, torre/nivel o nombre de cliente para ver su ficha de cobranza.</p>
+    </div>
+
+    <!-- Descuento -->
+    <div id="descCard" class="card hidden">
+      <div class="card-head">Simulación de descuento</div>
+      <div class="card-body">
+        <div class="desc-row">
+          <div class="desc-field">
+            <label>Descuento (%)</label>
+            <input type="number" id="descPct" min="0" max="100" step="0.5" value="0" oninput="calcularDescuento()">
+          </div>
+          <div class="desc-field">
+            <label>o descuento fijo ($)</label>
+            <input type="number" id="descMonto" min="0" step="1000" value="0" oninput="calcularDescuentoMonto()">
+          </div>
+        </div>
+        <div class="desc-result" id="descResult"></div>
+        <div class="btn-row">
+          <button class="btn-pdf" onclick="descargarPDF()">⬇ Descargar propuesta en PDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Romano Palace · Portal interno de cobranza</footer>
+</div>
+
+<!-- ================= ADMIN USUARIOS ================= -->
+<div id="adminModal" class="modal-bg hidden">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>⚙️ Administración · Usuarios</h2>
+      <button class="modal-close" onclick="closeAdminUsuarios()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="admin-box">
+        <h3>Crear / editar usuario</h3>
+        <div class="admin-sub">El usuario interno se genera automáticamente. El Administrador Supremo conserva todos los permisos.</div>
+        <input type="hidden" id="admIdInterno">
+        <div class="admin-form-grid">
+          <div><label>Nombre</label><input id="admNombre" placeholder="Nombre"></div>
+          <div><label>Usuario</label><input id="admUsuario" placeholder="usuario"></div>
+          <div><label>Contraseña</label><input id="admPassword" type="password" placeholder="(dejar vacío = sin cambio)"></div>
+          <div>
+            <label>Tipo</label>
+            <select id="admTipo">
+              <option>Usuario</option>
+              <option>Administrador</option>
+              <option>Administrador Supremo</option>
+            </select>
+          </div>
+        </div>
+        <div class="perm-grid">
+          <label class="perm-chip"><input type="checkbox" id="permActualizarDrive"> Actualizar base (cargar Excel)</label>
+          <label class="perm-chip"><input type="checkbox" id="permEditarNotas"> Editar notas de seguimiento</label>
+          <label class="perm-chip"><input type="checkbox" id="permUsuarios"> Administración de usuarios</label>
+        </div>
+        <button class="admin-save" onclick="guardarUsuario()">Guardar</button>
+        <div class="admin-status" id="adminStatus"></div>
+      </div>
+      <div class="admin-box">
+        <div class="admin-toolbar">
+          <div><h3>Usuarios activos</h3><div class="admin-sub" id="usersCount">Cargando...</div></div>
+          <button class="admin-new" onclick="nuevoUsuarioForm()">+ Nuevo usuario</button>
+        </div>
+        <div style="overflow:auto">
+          <table class="users-table">
+            <thead><tr><th>Usuario</th><th>Nombre</th><th>Tipo</th><th>Permisos</th><th>Último acceso</th><th>Acciones</th></tr></thead>
+            <tbody id="usersTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CARGA DE EXCEL: confirmación ================= -->
+<div id="excelModal" class="modal-bg hidden">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-head">
+      <h2>⬆ Cargar Excel</h2>
+      <button class="modal-close" onclick="closeExcelModal()">✕</button>
+    </div>
+    <div class="modal-body excel-modal-body">
+      <p>Vas a reemplazar el contenido de tu Google Sheet con las pestañas del archivo:</p>
+      <p style="margin-top:6px;"><b id="excelFileName">—</b></p>
+      <ul id="excelSheetsList"></ul>
+      <p style="color:var(--muted);font-size:12px;">Se sobrescribirá cada pestaña con el mismo nombre que traiga el Excel (por ejemplo "Cobranza Completa Agosto 2026" y "Datos extra Romano"). Esto no se puede deshacer.</p>
+      <div class="btn-row">
+        <button class="btn-sm btn-navy" onclick="confirmarCargaExcel()">Confirmar y subir</button>
+        <button class="btn-sm btn-outline" onclick="closeExcelModal()">Cancelar</button>
+      </div>
+      <div class="progress-box hidden" id="excelProgress"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+ *  CONFIGURACIÓN
+ * ============================================================ */
+// URL de tu Apps Script Web App (termina en /exec). Mientras esté
+// vacía, el sitio corre en MODO DEMO con datos de muestra y no se
+// conecta a ningún Google Sheet.
+const API_URL = 'https://script.google.com/a/macros/josemetta.com/s/AKfycbw2p1mCdg14xDQv_jWH1viWXM4RNO22jzJAXTWcZ5ecz_QseSYvgsz3UgOw8wmL1xJK/exec';
+
+/* ============================================================
+ *  DATOS DE MUESTRA (solo se usan si API_URL queda vacío)
+ * ============================================================ */
+const DEMO_DATA = [];
+
+/* ============================================================
+ *  ESTADO
+ * ============================================================ */
+let cobranzaData = [];
+let sheetUsada = '';
+let currentUser = null;
+let currentRecord = null;
+let usuariosCache = [];
+let workbookPendiente = null;
+
+const fmtMoney = (n) => {
+  if (n === null || n === undefined || n === '' || isNaN(n)) return '—';
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n);
+};
+const fmtNum = (n, dec) => {
+  if (n === null || n === undefined || n === '' || isNaN(n)) return '—';
+  return new Intl.NumberFormat('es-MX', { maximumFractionDigits: dec ?? 2 }).format(n);
+};
+const fmtPct = (n) => {
+  if (n === null || n === undefined || n === '' || isNaN(n)) return '—';
+  return (n * 100).toFixed(1) + '%';
+};
+const isEmpty = (v) => v === null || v === undefined || v === '' || String(v).trim().toUpperCase() === 'N/A';
+const numOrNull = (v) => isEmpty(v) ? null : Number(v);
+const textOr = (v, fallback) => isEmpty(v) ? (fallback ?? '—') : v;
+
+/* ============================================================
+ *  API HELPERS
+ * ============================================================ */
+async function apiGet(action) {
+  const res = await fetch(`${API_URL}?action=${action}`);
+  return res.json();
+}
+async function apiPost(action, payload) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(Object.assign({ action }, payload))
+  });
+  return res.json();
+}
+
+/* ============================================================
+ *  LOGIN / SESIÓN
+ * ============================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  if (!API_URL) document.getElementById('demoBanner').classList.remove('hidden');
+  const saved = localStorage.getItem('romanoUser');
+  if (saved) {
+    currentUser = JSON.parse(saved);
+    entrarApp();
+  }
+});
+
+async function doLogin() {
+  const usuario = document.getElementById('loginUsuario').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  if (!usuario || !password) { errEl.textContent = 'Ingresa usuario y contraseña.'; return; }
+
+  if (!API_URL) {
+    if (usuario === 'admin' && password === 'admin123') {
+      currentUser = { idInterno: 'demo', nombre: 'Administrador', usuario: 'admin',
+        tipo: 'Administrador Supremo', permActualizarDrive: true, permEditarNotas: true, permUsuarios: true };
+      localStorage.setItem('romanoUser', JSON.stringify(currentUser));
+      entrarApp();
+    } else {
+      errEl.textContent = 'En modo demo usa admin / admin123.';
+    }
+    return;
+  }
+
+  try {
+    const r = await apiPost('login', { usuario, password });
+    if (r.ok) {
+      currentUser = r.user;
+      localStorage.setItem('romanoUser', JSON.stringify(currentUser));
+      entrarApp();
+    } else {
+      errEl.textContent = r.error || 'No se pudo iniciar sesión.';
+    }
+  } catch (e) {
+    errEl.textContent = 'Error de conexión: ' + e.message;
+  }
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('romanoUser');
+  document.getElementById('appScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+function entrarApp() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  document.getElementById('userName').textContent = currentUser.nombre || currentUser.usuario;
+  document.getElementById('btnAdminGear').classList.toggle('hidden', !currentUser.permUsuarios);
+  document.getElementById('btnCargarExcel').classList.toggle('hidden', !currentUser.permActualizarDrive);
+  cargarDatos();
+}
+
+/* ============================================================
+ *  CARGA DE DATOS DE COBRANZA
+ * ============================================================ */
+async function cargarDatos() {
+  const info = document.getElementById('updateInfo');
+  info.textContent = 'Conectando con Google Sheets...';
+  try {
+    let resp;
+    if (!API_URL) {
+      resp = { ok: true, data: DEMO_DATA, sheetUsada: 'Cobranza Completa Agosto 2026 (demo)', updatedAt: new Date().toISOString() };
+    } else {
+      resp = await apiGet('data');
+    }
+    if (!resp.ok) { info.textContent = 'Error: ' + resp.error; return; }
+    cobranzaData = resp.data;
+    sheetUsada = resp.sheetUsada || '';
+    const fecha = new Date(resp.updatedAt);
+    info.textContent = `${cobranzaData.length} unidades · ${sheetUsada} · actualizado ${fecha.toLocaleString('es-MX')}`;
+    document.getElementById('subHeading').textContent = `${sheetUsada || 'Cobranza'} | Consulta y simulación de descuento`;
+    poblarNiveles();
+    if (currentRecord) {
+      const actualizado = cobranzaData.find(r => String(r.Depto) === String(currentRecord.Depto));
+      if (actualizado) mostrarFicha(actualizado);
+    }
+  } catch (e) {
+    info.textContent = 'Error de conexión: ' + e.message;
+  }
+}
+
+function nivelSortKey(v) {
+  const s = String(v).toUpperCase().trim();
+  if (s === 'MEZA') return -100;
+  const vip = s.match(/^(\d+)\s*VIP$/);
+  if (vip) return 1000 + Number(vip[1]);
+  const n = Number(s);
+  return isNaN(n) ? 9999 : n;
+}
+
+function poblarNiveles() {
+  const niveles = [...new Set(cobranzaData.map(r => r.Nivel))].filter(v => !isEmpty(v));
+  niveles.sort((a, b) => nivelSortKey(a) - nivelSortKey(b));
+  const sel = document.getElementById('nivelSelect');
+  sel.innerHTML = '<option value="">-- Torre / Nivel --</option>' +
+    niveles.map(n => `<option value="${n}">Nivel ${n}</option>`).join('');
+}
+
+/* ============================================================
+ *  BÚSQUEDA
+ * ============================================================ */
+function onSearchInput() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const list = document.getElementById('suggList');
+  if (!q) { list.style.display = 'none'; list.innerHTML = ''; return; }
+  const matches = cobranzaData.filter(r =>
+    String(r.Depto).toLowerCase().includes(q) ||
+    String(r.Cliente).toLowerCase().includes(q) ||
+    String(r.Nivel).toLowerCase().includes(q)
+  ).slice(0, 12);
+  if (!matches.length) {
+    list.innerHTML = '<div class="sugg-item">Sin resultados</div>';
+    list.style.display = 'block';
+    return;
+  }
+  list.innerHTML = matches.map(r =>
+    `<div class="sugg-item" onclick='seleccionarDepto("${String(r.Depto).replace(/"/g,'&quot;')}")'>
+      <b>Depto ${r.Depto}</b> · Nivel ${r.Nivel}<br><span>${r.Cliente}</span>
+    </div>`
+  ).join('');
+  list.style.display = 'block';
+}
+
+function seleccionarDepto(depto) {
+  const r = cobranzaData.find(x => String(x.Depto) === String(depto));
+  document.getElementById('suggList').style.display = 'none';
+  document.getElementById('searchInput').value = '';
+  if (r) mostrarFicha(r);
+}
+
+function onNivelChange() {
+  const nivel = document.getElementById('nivelSelect').value;
+  if (!nivel) return;
+  const primero = cobranzaData.find(r => String(r.Nivel) === String(nivel));
+  if (primero) mostrarFicha(primero);
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.search-wrap')) {
+    document.getElementById('suggList').style.display = 'none';
+  }
+});
+
+/* ============================================================
+ *  FICHA DE CLIENTE
+ * ============================================================ */
+function statusChipHtml(estatus) {
+  const cls = String(estatus).toLowerCase() === 'contrato' ? 'status-contrato' : 'status-otro';
+  return `<span class="status-chip ${cls}">${textOr(estatus)}</span>`;
+}
+
+function fieldHtml(label, value, opts) {
+  opts = opts || {};
+  const cls = ['field'];
+  if (opts.money) cls.push('money');
+  if (opts.vencido) cls.push('vencido');
+  return `<div class="${cls.join(' ')}"><div class="lbl">${label}</div><div class="val">${value}</div></div>`;
+}
+
+function mostrarFicha(r) {
+  currentRecord = r;
+  document.getElementById('emptyState').classList.add('hidden');
+  document.getElementById('fichaCard').classList.remove('hidden');
+  document.getElementById('descCard').classList.remove('hidden');
+
+  const m2interior = numOrNull(r['M2 interior']);
+  const terraza = numOrNull(r['Terraza']);
+  const m2total = numOrNull(r['m² total']);
+  const vencido = numOrNull(r['Vencido']) || 0;
+  const torre = !isEmpty(r.Torre) ? `Torre ${r.Torre} · ` : '';
+
+  let html = `
+    <div class="ficha-header">
+      <div>
+        <h2>${textOr(r.Cliente)}</h2>
+        <div style="margin-top:6px;">${statusChipHtml(r.Estatus)}</div>
+      </div>
+      <div class="depto-tag">${torre}Nivel ${textOr(r.Nivel)} · Depto ${textOr(r.Depto)}</div>
+    </div>
+
+    <div class="section-title">Unidad</div>
+    <div class="grid">
+      ${fieldHtml('m² interior', m2interior !== null ? fmtNum(m2interior) + ' m²' : '—')}
+      ${fieldHtml('Terraza', terraza !== null ? fmtNum(terraza) + ' m²' : '—')}
+      ${fieldHtml('m² total', m2total !== null ? fmtNum(m2total) + ' m²' : '—')}
+      ${fieldHtml('Fecha de entrega', textOr(r.Entrega))}
+      ${fieldHtml('Vendedor', textOr(r.Vendedor))}
+      ${fieldHtml('Fecha de venta', textOr(r['Fecha venta']))}
+    </div>
+
+    <div class="section-title">Estado de cuenta</div>
+    <div class="grid">
+      ${fieldHtml('Precio de venta', fmtMoney(numOrNull(r['Precio venta'])), { money: true })}
+      ${fieldHtml('Precio por m²', fmtMoney(numOrNull(r['Precio m²'])), { money: true })}
+      ${fieldHtml('Pagado (dep. + efectivo)', fmtMoney(numOrNull(r['Dep+Efectivo'])), { money: true })}
+      ${fieldHtml('% Enganche', fmtPct(numOrNull(r['% Enganche'])))}
+      ${fieldHtml('Documentado', fmtMoney(numOrNull(r['Documentado'])), { money: true })}
+      ${fieldHtml('Saldo que debe', fmtMoney(numOrNull(r['Saldo que debe'])), { money: true })}
+      ${fieldHtml('Vencido', fmtMoney(vencido), { money: true, vencido: vencido > 0 })}
+      ${!isEmpty(r['Vencido desde']) ? fieldHtml('Vencido desde', textOr(r['Vencido desde']), { vencido: vencido > 0 }) : ''}
+      ${!isEmpty(r['Antigüedad']) ? fieldHtml('Antigüedad de vencido', textOr(r['Antigüedad'])) : ''}
+    </div>
+
+    <div class="section-title">Contacto</div>
+    <div class="grid">
+      ${fieldHtml('Teléfono', textOr(r['Teléfono'] || r['Teléfono (original)']))}
+      ${fieldHtml('Correo electrónico', textOr(r['Correo electrónico']))}
+    </div>
+  `;
+
+  const tieneAcuerdo = !isEmpty(r['Acuerdo']) || !isEmpty(r['Desc. máx %']) || !isEmpty(r['Desc. máx $']);
+  if (tieneAcuerdo) {
+    html += `
+      <div class="section-title">Descuentos y acuerdos autorizados</div>
+      <div class="grid">
+        ${fieldHtml('Descuento máx. %', fmtPct(numOrNull(r['Desc. máx %'])))}
+        ${fieldHtml('Descuento máx. $', fmtMoney(numOrNull(r['Desc. máx $'])), { money: true })}
+        ${fieldHtml('Acuerdo', textOr(r['Acuerdo']))}
+      </div>
+    `;
+  }
+
+  html += `
+    <div class="section-title">Nota de seguimiento</div>
+    <div class="note-box" id="notaTexto">${!isEmpty(r['Nota seguimiento']) ? r['Nota seguimiento'] : 'Sin notas registradas.'}</div>
+  `;
+  if (currentUser && currentUser.permEditarNotas) {
+    html += `
+      <div class="editnote-row">
+        <textarea id="notaEdit" placeholder="Escribir nueva nota de seguimiento...">${!isEmpty(r['Nota seguimiento']) ? r['Nota seguimiento'] : ''}</textarea>
+        <button class="btn-sm btn-navy" style="align-self:flex-start;" onclick="guardarNota()">Guardar nota</button>
+      </div>
+      <div class="admin-status" id="notaStatus"></div>
+    `;
+  }
+
+  document.getElementById('fichaBody').innerHTML = html;
+  document.getElementById('descPct').value = 0;
+  document.getElementById('descMonto').value = 0;
+  calcularDescuento();
+}
+
+async function guardarNota() {
+  const statusEl = document.getElementById('notaStatus');
+  const texto = document.getElementById('notaEdit').value.trim();
+  statusEl.textContent = 'Guardando...';
+  if (!API_URL) {
+    currentRecord['Nota seguimiento'] = texto || 'N/A';
+    statusEl.textContent = 'Guardado (modo demo, no persiste).';
+    return;
+  }
+  try {
+    const r = await apiPost('updatecobranza', { depto: currentRecord.Depto, campos: { 'Nota seguimiento': texto || 'N/A' } });
+    statusEl.textContent = r.ok ? 'Nota guardada ✓' : ('Error: ' + r.error);
+    if (r.ok) cargarDatos();
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+  }
+}
+
+/* ============================================================
+ *  SIMULACIÓN DE DESCUENTO
+ * ============================================================ */
+function calcularDescuento() {
+  if (!currentRecord) return;
+  const pct = Number(document.getElementById('descPct').value) || 0;
+  document.getElementById('descMonto').value = 0;
+  renderDescuento(pct, null);
+}
+function calcularDescuentoMonto() {
+  if (!currentRecord) return;
+  const monto = Number(document.getElementById('descMonto').value) || 0;
+  document.getElementById('descPct').value = 0;
+  renderDescuento(null, monto);
+}
+function renderDescuento(pct, montoFijo) {
+  const saldo = numOrNull(currentRecord['Saldo que debe']) || 0;
+  let descuento = 0;
+  if (pct) descuento = saldo * (pct / 100);
+  else if (montoFijo) descuento = montoFijo;
+  const nuevoSaldo = Math.max(saldo - descuento, 0);
+  const el = document.getElementById('descResult');
+  el.innerHTML = `
+    ${fieldHtml('Saldo actual', fmtMoney(saldo), { money: true })}
+    ${fieldHtml('Descuento aplicado', fmtMoney(descuento), { money: true })}
+    ${fieldHtml('Nuevo saldo propuesto', fmtMoney(nuevoSaldo), { money: true })}
+  `;
+}
+
+/* ============================================================
+ *  PDF
+ * ============================================================ */
+function descargarPDF() {
+  if (!currentRecord) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const r = currentRecord;
+  const saldo = numOrNull(r['Saldo que debe']) || 0;
+  const pct = Number(document.getElementById('descPct').value) || 0;
+  const montoFijo = Number(document.getElementById('descMonto').value) || 0;
+  const descuento = pct ? saldo * (pct / 100) : montoFijo;
+  const nuevoSaldo = Math.max(saldo - descuento, 0);
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(14, 27, 51);
+  doc.text('ROMANO PALACE', 14, 20);
+  doc.setFontSize(11); doc.setTextColor(140, 122, 52);
+  doc.text('Propuesta de pago', 14, 27);
+  doc.setDrawColor(198, 161, 91); doc.line(14, 31, 196, 31);
+
+  doc.setFontSize(10); doc.setTextColor(30, 30, 30);
+  let y = 42;
+  const line = (label, value) => { doc.setFont('helvetica','bold'); doc.text(label + ':', 14, y);
+    doc.setFont('helvetica','normal'); doc.text(String(value), 70, y); y += 8; };
+
+  line('Cliente', textOr(r.Cliente));
+  line('Nivel / Depto', `${textOr(r.Nivel)} / ${textOr(r.Depto)}`);
+  line('Estatus', textOr(r.Estatus));
+  line('m² total', numOrNull(r['m² total']) !== null ? fmtNum(numOrNull(r['m² total'])) + ' m²' : '—');
+  line('Precio de venta', fmtMoney(numOrNull(r['Precio venta'])));
+  line('Pagado', fmtMoney(numOrNull(r['Dep+Efectivo'])));
+  line('Documentado', fmtMoney(numOrNull(r['Documentado'])));
+  line('Saldo actual', fmtMoney(saldo));
+  y += 4;
+  doc.setDrawColor(230, 230, 230); doc.line(14, y - 6, 196, y - 6);
+  doc.setFont('helvetica','bold'); doc.setTextColor(14,27,51); doc.setFontSize(11);
+  doc.text('Simulación de descuento', 14, y); y += 9;
+  doc.setFontSize(10); doc.setTextColor(30,30,30);
+  line('Descuento aplicado', fmtMoney(descuento));
+  line('Nuevo saldo propuesto', fmtMoney(nuevoSaldo));
+
+  y += 6;
+  doc.setFontSize(8.5); doc.setTextColor(140,140,140);
+  doc.text(`Generado el ${new Date().toLocaleString('es-MX')} · Documento informativo, sujeto a confirmación.`, 14, y);
+
+  doc.save(`Propuesta_${textOr(r.Depto)}_${textOr(r.Cliente).replace(/\s+/g,'_')}.pdf`);
+}
+
+/* ============================================================
+ *  CARGAR EXCEL (admin)
+ * ============================================================ */
+function onExcelSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const data = new Uint8Array(e.target.result);
+    const wb = XLSX.read(data, { type: 'array', cellDates: true });
+    workbookPendiente = { file, wb };
+    document.getElementById('excelFileName').textContent = file.name;
+    document.getElementById('excelSheetsList').innerHTML = wb.SheetNames.map(n => `<li>${n}</li>`).join('');
+    document.getElementById('excelModal').classList.remove('hidden');
+  };
+  reader.readAsArrayBuffer(file);
+  event.target.value = '';
+}
+
+function closeExcelModal() {
+  document.getElementById('excelModal').classList.add('hidden');
+  document.getElementById('excelProgress').classList.add('hidden');
+  workbookPendiente = null;
+}
+
+async function confirmarCargaExcel() {
+  if (!workbookPendiente) return;
+  const progress = document.getElementById('excelProgress');
+  progress.classList.remove('hidden');
+  const { wb } = workbookPendiente;
+
+  if (!API_URL) {
+    progress.textContent = 'Modo demo: no hay Google Sheet conectado, no se puede subir. Configura API_URL primero.';
+    return;
+  }
+
+  for (const nombreHoja of wb.SheetNames) {
+    progress.textContent = `Subiendo pestaña "${nombreHoja}"...`;
+    const ws = wb.Sheets[nombreHoja];
+    const filas = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' }).map(row =>
+      row.map(cell => (cell instanceof Date) ? formatDateCell(cell) : cell)
+    );
+    try {
+      const r = await apiPost('cargarhoja', { nombreHoja, filas });
+      if (!r.ok) { progress.textContent = `Error en "${nombreHoja}": ${r.error}`; return; }
+    } catch (e) {
+      progress.textContent = `Error de conexión en "${nombreHoja}": ${e.message}`;
+      return;
+    }
+  }
+  progress.textContent = 'Listo. Actualizando datos...';
+  await cargarDatos();
+  setTimeout(closeExcelModal, 1200);
+}
+
+function formatDateCell(d) {
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+/* ============================================================
+ *  ADMIN · USUARIOS
+ * ============================================================ */
+async function openAdminUsuarios() {
+  document.getElementById('adminModal').classList.remove('hidden');
+  nuevoUsuarioForm();
+  await cargarUsuarios();
+}
+function closeAdminUsuarios() {
+  document.getElementById('adminModal').classList.add('hidden');
+}
+function nuevoUsuarioForm() {
+  document.getElementById('admIdInterno').value = '';
+  document.getElementById('admNombre').value = '';
+  document.getElementById('admUsuario').value = '';
+  document.getElementById('admPassword').value = '';
+  document.getElementById('admTipo').value = 'Usuario';
+  document.getElementById('permActualizarDrive').checked = false;
+  document.getElementById('permEditarNotas').checked = false;
+  document.getElementById('permUsuarios').checked = false;
+  document.getElementById('adminStatus').textContent = '';
+}
+function editarUsuarioForm(u) {
+  document.getElementById('admIdInterno').value = u.idInterno;
+  document.getElementById('admNombre').value = u.nombre || '';
+  document.getElementById('admUsuario').value = u.usuario || '';
+  document.getElementById('admPassword').value = '';
+  document.getElementById('admTipo').value = u.tipo || 'Usuario';
+  document.getElementById('permActualizarDrive').checked = !!u.permActualizarDrive;
+  document.getElementById('permEditarNotas').checked = !!u.permEditarNotas;
+  document.getElementById('permUsuarios').checked = !!u.permUsuarios;
+}
+
+async function cargarUsuarios() {
+  const tbody = document.getElementById('usersTbody');
+  const count = document.getElementById('usersCount');
+  if (!API_URL) {
+    usuariosCache = [currentUser];
+  } else {
+    const r = await apiGet('usuarios');
+    usuariosCache = r.ok ? r.data : [];
+  }
+  count.textContent = `${usuariosCache.length} usuario(s)`;
+  tbody.innerHTML = usuariosCache.map(u => {
+    const perms = [
+      u.permActualizarDrive ? 'Actualizar base' : null,
+      u.permEditarNotas ? 'Notas' : null,
+      u.permUsuarios ? 'Usuarios' : null
+    ].filter(Boolean).join(', ') || '—';
+    return `<tr>
+      <td>${u.usuario}</td><td>${u.nombre || '—'}</td><td>${u.tipo || '—'}</td>
+      <td>${perms}</td><td>${u.ultimoAcceso || '—'}</td>
+      <td>
+        <button class="link-btn" onclick='editarUsuarioForm(${JSON.stringify(u).replace(/'/g, "&apos;")})'>Editar</button>
+        ${API_URL ? `<button class="link-btn danger" onclick="eliminarUsuario('${u.idInterno}')">Eliminar</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function guardarUsuario() {
+  const statusEl = document.getElementById('adminStatus');
+  const usuario_obj = {
+    idInterno: document.getElementById('admIdInterno').value || null,
+    nombre: document.getElementById('admNombre').value.trim(),
+    usuario: document.getElementById('admUsuario').value.trim(),
+    password: document.getElementById('admPassword').value,
+    tipo: document.getElementById('admTipo').value,
+    permActualizarDrive: document.getElementById('permActualizarDrive').checked,
+    permEditarNotas: document.getElementById('permEditarNotas').checked,
+    permUsuarios: document.getElementById('permUsuarios').checked
+  };
+  if (!usuario_obj.usuario) { statusEl.textContent = 'Falta el nombre de usuario.'; return; }
+  if (!API_URL) { statusEl.textContent = 'Modo demo: configura API_URL para guardar usuarios de verdad.'; return; }
+  statusEl.textContent = 'Guardando...';
+  try {
+    const r = await apiPost('saveusuario', { usuario_obj });
+    statusEl.textContent = r.ok ? 'Usuario guardado ✓' : ('Error: ' + r.error);
+    if (r.ok) { nuevoUsuarioForm(); cargarUsuarios(); }
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+  }
+}
+
+async function eliminarUsuario(idInterno) {
+  if (!confirm('¿Eliminar este usuario?')) return;
+  const r = await apiPost('deleteusuario', { idInterno });
+  if (r.ok) cargarUsuarios();
+  else alert('Error: ' + r.error);
+}
+</script>
+</body>
+</html>
